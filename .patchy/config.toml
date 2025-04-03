@@ -61,6 +61,8 @@ pull-requests = [
   "12520",
   # rounded edges for picker
   "11497",
+  # support for custom typable commands
+  "12320",
 ]
 
 # Optional: A list of patches to apply
