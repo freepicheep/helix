@@ -322,6 +322,7 @@ fn diag_picker(
         },
     )
     .with_preview(move |_editor, diag| location_to_file_location(&diag.location))
+    .with_title("Diagnostics".into())
     .truncate_start(false)
 }
 
@@ -458,6 +459,7 @@ pub fn symbol_picker(cx: &mut Context) {
                 },
             )
             .with_preview(move |_editor, item| location_to_file_location(&item.location))
+            .with_title("Document Symbols".into())
             .truncate_start(false);
 
             compositor.push(Box::new(overlaid(picker)))
@@ -593,6 +595,7 @@ pub fn workspace_symbol_picker(cx: &mut Context) {
     )
     .with_preview(|_editor, item| location_to_file_location(&item.location))
     .with_dynamic_query(get_symbols, None)
+    .with_title("Workspace Symbols".into())
     .truncate_start(false);
 
     cx.push_layer(Box::new(overlaid(picker)));
@@ -885,7 +888,12 @@ impl Display for ApplyEditErrorKind {
 }
 
 /// Precondition: `locations` should be non-empty.
-fn goto_impl(editor: &mut Editor, compositor: &mut Compositor, locations: Vec<Location>) {
+fn goto_impl(
+    title: &'static str,
+    editor: &mut Editor,
+    compositor: &mut Compositor,
+    locations: Vec<Location>,
+) {
     let cwdir = helix_stdx::env::current_working_dir();
 
     match locations.as_slice() {
@@ -910,7 +918,8 @@ fn goto_impl(editor: &mut Editor, compositor: &mut Compositor, locations: Vec<Lo
             let picker = Picker::new(columns, 0, locations, cwdir, |cx, location, action| {
                 jump_to_location(cx.editor, location, action)
             })
-            .with_preview(|_editor, location| location_to_file_location(location));
+            .with_preview(|_editor, location| location_to_file_location(location))
+            .with_title(title.into());
             compositor.push(Box::new(overlaid(picker)));
         }
     }
@@ -969,7 +978,7 @@ where
             if locations.is_empty() {
                 editor.set_error("No definition found.");
             } else {
-                goto_impl(editor, compositor, locations);
+                goto_impl("Goto Implementation", editor, compositor, locations);
             }
         };
         Ok(Callback::EditorCompositor(Box::new(call)))
@@ -1046,7 +1055,7 @@ pub fn goto_reference(cx: &mut Context) {
             if locations.is_empty() {
                 editor.set_error("No references found.");
             } else {
-                goto_impl(editor, compositor, locations);
+                goto_impl("Goto Reference", editor, compositor, locations);
             }
         };
         Ok(Callback::EditorCompositor(Box::new(call)))
